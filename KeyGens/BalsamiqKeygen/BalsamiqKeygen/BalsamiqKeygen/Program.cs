@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Text;
+using System.Threading;
 using Ionic.Zlib;
 
 namespace BalsamiqKeygen
@@ -26,20 +28,27 @@ namespace BalsamiqKeygen
 
         static void Main(string[] args)
         {
-            var keyData = new KeyData("MockupsAir", "Evilzone", DateTime.Now, "C", "1");
-            Debug.WriteLine(keyData);
+            var keyData1 = new KeyData("MockupsAir", "Evilzone", DateTime.Now, "C", "1");
+            Debug.WriteLine(keyData1);
+            Debug.WriteLine(keyData1.Encode());
+            Debug.WriteLine("");
+
+            var keyData2 = KeyData.Decode(keyData1.Encode());
+            Debug.WriteLine(keyData2);
+            Debug.WriteLine(keyData2.Encode());
+
             Console.ReadKey();
         }
-
     }
 
     public class KeyData
     {
-        private string productName;
-        private string companyName;
-        private DateTime startDate;
-        private string kind;
-        private string users;
+        public string productName;
+        public string companyName;
+        public DateTime startDate;
+        public string kind;
+        public string users;
+
         public KeyData(string productName, string companyName, DateTime startDate, string kind, string users)
         {
             this.productName = productName;
@@ -57,8 +66,35 @@ namespace BalsamiqKeygen
         public override string ToString()
         {
             var dks = String.Format("{0}|{1}|{2}|{3}|{4}", productName, companyName, startDate.Ticks, kind, users);
+            return dks;
+        }
+
+        public string Encode()
+        {
+            var dks = String.Format("{0}|{1}|{2}|{3}|{4}", productName, companyName, startDate.Ticks, kind, users);
             var cks = ZlibStream.CompressString(dks);
             return Convert.ToBase64String(cks);
+        }
+
+        public static KeyData Decode(string base64)
+        {
+            var bsd = Convert.FromBase64String(base64);
+            var uks = ZlibStream.UncompressBuffer(bsd);
+            var dks = Encoding.UTF8.GetString(uks);
+            var parts = dks.Split(new[] {"|"}, StringSplitOptions.None);
+
+            if (parts.Length < 5)
+            {
+                return null;
+            }
+
+            long ticks;
+            if (!long.TryParse(parts[2], out ticks))
+            {
+                return null;
+            }
+
+            return new KeyData(parts[0], parts[1], new DateTime(ticks), parts[3], parts[4]);
         }
     }
 
