@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
@@ -23,7 +24,7 @@ namespace LogiclyKeygen
                 
                 if (CheckKey(p, 0, 23, 0, 1))
                 {
-                    Console.WriteLine(i + " :: " + p);
+                    Debug.WriteLine(p);
                 }
 
                 curPas = IncrementPosition(curPas, 0);
